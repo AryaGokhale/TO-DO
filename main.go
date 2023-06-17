@@ -6,29 +6,17 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/AryaGokhale/todo/models"
 )
 
-// User struct
-type User struct {
-	ID       uint64 `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
+var users = []models.User{}
 
-type Note struct {
-	ID      uint64 `json:"id"`
-	Content string `json:"name"`
-	Author  string `json:"author"`
-}
-
-var users = []User{}
-
-var notes = []Note{}
+var notes = []models.Note{}
 
 func signupUser(c *gin.Context) {
 
-	var newUser User
+	var newUser models.User
 
 	err := c.BindJSON(&newUser)
 
@@ -43,7 +31,7 @@ func signupUser(c *gin.Context) {
 
 func loginUser(c *gin.Context) {
 
-	var loggedUser User
+	var loggedUser models.User
 
 	err := json.NewDecoder(c.Request.Body).Decode(&loggedUser)
 
@@ -63,7 +51,7 @@ func loginUser(c *gin.Context) {
 
 func createNote(c *gin.Context) {
 
-	var newNote Note
+	var newNote models.Note
 
 	err := json.NewDecoder(c.Request.Body).Decode(&newNote)
 
@@ -81,7 +69,7 @@ func readNote(c *gin.Context) {
 
 	var username string
 
-	userNotes := []Note{}
+	userNotes := []models.Note{}
 
 	username = c.Request.URL.Query().Get("author")
 
