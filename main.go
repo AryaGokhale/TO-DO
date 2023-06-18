@@ -41,9 +41,11 @@ func loginUser(c *gin.Context) {
 	}
 
 	for _, u := range users {
-		if u.Email == loggedUser.Email && u.Password == u.Password {
-			c.IndentedJSON(http.StatusFound, loggedUser)
+		if u.Email == loggedUser.Email && u.Password == loggedUser.Password {
+
 			fmt.Println("Login successfull")
+			c.IndentedJSON(http.StatusFound, loggedUser)
+
 		}
 	}
 
@@ -60,26 +62,60 @@ func createNote(c *gin.Context) {
 	}
 
 	notes = append(notes, newNote)
-	//c.IndentedJSON(http.StatusCreated, newNote)
 	fmt.Println("Note created successfull")
 
 }
 
 func readNote(c *gin.Context) {
 
-	var username string
-
 	userNotes := []models.Note{}
 
-	username = c.Request.URL.Query().Get("author")
+	var username models.Note
 
+	err := json.NewDecoder(c.Request.Body).Decode(&username)
+
+	if err != nil {
+
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+		return
+
+	}
 	for _, note := range notes {
-		if note.Author == username {
+		if note.Author == username.Author {
 
 			userNotes = append(userNotes, note)
 			fmt.Println("Content is: ", note.Content)
 		}
 	}
+
+	c.IndentedJSON(http.StatusOK, userNotes)
+
+}
+
+func deleteNote(c *gin.Context) {
+
+	var req models.Note
+
+	err := json.NewDecoder(c.Request.Body).Decode(&req)
+
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	noteIndex := -1
+
+	for i, note := range notes {
+
+		if note.ID == req.ID {
+
+			noteIndex = i
+		}
+	}
+
+	notes = append(notes[:noteIndex], notes[noteIndex+1:]...)
+
+	fmt.Println("Deleted note successfully")
 
 }
 
@@ -90,5 +126,6 @@ func main() {
 	router.POST("/login", loginUser)
 	router.POST("/notes", createNote)
 	router.GET("/notes", readNote)
+	router.DELETE("/notes", deleteNote)
 	router.Run("localhost:8080")
 }
