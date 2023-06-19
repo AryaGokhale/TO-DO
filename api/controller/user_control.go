@@ -36,6 +36,8 @@ func (server *Server) LoginUser(c *gin.Context) {
 
 	var loggedUser models.User
 
+	var authenticated bool
+
 	err := json.NewDecoder(c.Request.Body).Decode(&loggedUser)
 
 	if err != nil {
@@ -45,6 +47,8 @@ func (server *Server) LoginUser(c *gin.Context) {
 
 	for _, u := range users {
 		if u.Email == loggedUser.Email && u.Password == loggedUser.Password {
+
+			authenticated = true
 
 			fmt.Println("Login successfull")
 
@@ -65,4 +69,7 @@ func (server *Server) LoginUser(c *gin.Context) {
 		}
 	}
 
+	if authenticated == false {
+		c.IndentedJSON(http.StatusUnauthorized, loggedUser)
+	}
 }

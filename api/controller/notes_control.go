@@ -13,20 +13,62 @@ import (
 
 var notes = []models.Note{}
 var jwtKey = []byte(os.Getenv("SECRET_KEY"))
+var ID uint32
+
+type NoteReq struct {
+	SID  string `json:"sid"`
+	NOTE string `json:"note"`
+}
+
+func prepareNote(note, author string) models.Note {
+
+	ID = ID + 1
+	newNote := models.Note{ID: ID, Content: note, Author: author}
+	return newNote
+}
 
 func (server *Server) CreateNote(c *gin.Context) {
 
-	var newNote models.Note
+	var noteReq NoteReq
 
-	err := json.NewDecoder(c.Request.Body).Decode(&newNote)
+	err := json.NewDecoder(c.Request.Body).Decode(&noteReq)
 
 	if err != nil {
 		return
 	}
 
+	token, err := jwt.Parse(noteReq.SID, func(token *jwt.Token) (interface{}, error) {
+		return []byte(jwtKey), nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid session ID"})
+		return
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid session ID"})
+		return
+	}
+
+	author := claims["username"].(string)
+	note := noteReq.NOTE
+	newNote := prepareNote(note, author)
+
 	notes = append(notes, newNote)
 	fmt.Println("Note created successfull")
+	c.IndentedJSON(http.StatusOK, newNote.ID)
 
+}
+
+type readNote struct {
+	ID   uint32 `json:"id"`
+	NOTE string `json:"note"`
+}
+
+type readNoteResponse struct {
+	Notes []readNote `json:"notes"`
 }
 
 func (server *Server) ReadNote(c *gin.Context) {
@@ -55,23 +97,40 @@ func (server *Server) ReadNote(c *gin.Context) {
 
 	name := claims["username"].(string)
 
-	userNotes := []models.Note{}
+	//userNotes := []models.Note{}
+	readNotes := []readNote{}
 
 	for _, note := range notes {
 		if note.Author == name {
 
-			userNotes = append(userNotes, note)
+			_note := readNote{ID: note.ID, NOTE: note.Content}
+			readNotes = append(readNotes, _note)
 			fmt.Println("Content is: ", note.Content)
 		}
 	}
 
-	c.IndentedJSON(http.StatusOK, userNotes)
+	data := readNoteResponse{
+		Notes: readNotes,
+	}
 
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshaling JSON:", err)
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, jsonData)
+
+}
+
+type deleteReq struct {
+	SID string `json:"sid"`
+	ID  uint32 `json:"id"`
 }
 
 func (server *Server) DeleteNote(c *gin.Context) {
 
-	var req models.Note
+	var req deleteReq
 
 	err := json.NewDecoder(c.Request.Body).Decode(&req)
 
