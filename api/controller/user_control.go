@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/AryaGokhale/todo/api/models"
 	"github.com/AryaGokhale/todo/api/token"
@@ -13,6 +12,7 @@ import (
 
 var users = []models.User{}
 
+// Serves users signup request
 func (server *Server) SignupUser(c *gin.Context) {
 
 	var newUser models.User
@@ -32,6 +32,7 @@ func (server *Server) SignupUser(c *gin.Context) {
 
 }
 
+// Serves users login request
 func (server *Server) LoginUser(c *gin.Context) {
 
 	var loggedUser models.User
@@ -59,11 +60,8 @@ func (server *Server) LoginUser(c *gin.Context) {
 				return
 			}
 
-			sessionID := fmt.Sprintf("%d", time.Now().UnixNano())
-
 			c.IndentedJSON(http.StatusOK, gin.H{
-				"token":     validToken,
-				"sessionID": sessionID,
+				"sessionID": validToken,
 			})
 
 		}

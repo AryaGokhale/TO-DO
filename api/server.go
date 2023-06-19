@@ -7,5 +7,5 @@ var server = controller.Server{}
 func Run() {
 
 	server.Initialize()
-	server.Run("localhost:8080")
+	server.Run(":8080")
 }

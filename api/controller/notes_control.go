@@ -11,15 +11,22 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+// array of notes created by the user
 var notes = []models.Note{}
+
+// secret key defined in env file
 var jwtKey = []byte(os.Getenv("SECRET_KEY"))
+
+// Note ID
 var ID uint32
 
+// Request structure for creating a note
 type NoteReq struct {
 	SID  string `json:"sid"`
 	NOTE string `json:"note"`
 }
 
+// prepare note according to the format specified in the package models, before appending
 func prepareNote(note, author string) models.Note {
 
 	ID = ID + 1
@@ -27,6 +34,7 @@ func prepareNote(note, author string) models.Note {
 	return newNote
 }
 
+// CreateNote serves the request to create a new note
 func (server *Server) CreateNote(c *gin.Context) {
 
 	var noteReq NoteReq
@@ -62,18 +70,21 @@ func (server *Server) CreateNote(c *gin.Context) {
 
 }
 
+// Request structure for reading a note
 type readNote struct {
 	ID   uint32 `json:"id"`
 	NOTE string `json:"note"`
 }
 
+// Response structure for creating a note
 type readNoteResponse struct {
 	Notes []readNote `json:"notes"`
 }
 
+// Serves the request to read notes
 func (server *Server) ReadNote(c *gin.Context) {
 
-	sessionID := c.GetHeader("Authorization")
+	sessionID := c.GetHeader("Authorization") //check the session ID that is the token created
 
 	if sessionID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing session ID"})
@@ -95,10 +106,9 @@ func (server *Server) ReadNote(c *gin.Context) {
 		return
 	}
 
-	name := claims["username"].(string)
+	name := claims["username"].(string) //check the name of the author who issued a token
 
-	//userNotes := []models.Note{}
-	readNotes := []readNote{}
+	readNotes := []readNote{} //notes of a given author
 
 	for _, note := range notes {
 		if note.Author == name {
@@ -128,6 +138,7 @@ type deleteReq struct {
 	ID  uint32 `json:"id"`
 }
 
+// serves the request to delete a note
 func (server *Server) DeleteNote(c *gin.Context) {
 
 	var req deleteReq
@@ -141,6 +152,7 @@ func (server *Server) DeleteNote(c *gin.Context) {
 
 	noteIndex := -1
 
+	//delete a note based on the note's associated ID
 	for i, note := range notes {
 
 		if note.ID == req.ID {
