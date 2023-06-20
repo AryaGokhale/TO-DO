@@ -22,3 +22,8 @@ Postman: REST API testing is performed using Postman, a popular API development 
 Swagger: Swagger will be used for further testing and documentation of the API. It provides a user-friendly interface to explore and interact with the API endpoints.
 
 The docker-compose.yml file is provided to simplify the process of running the server in a container using Docker Compose. It defines a service called app, which is built from the Docker image specified in the Dockerfile. The service maps port 8080 of the container to port 8080 of the host machine.
+
+After starting the server please access the API's via the localhost port 8080 
+http://localhost:8080/signup : for signup
+http://localhost:8080/login : for login 
+http://localhost:8080/notes : for managing notes
