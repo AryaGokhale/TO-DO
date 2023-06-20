@@ -123,13 +123,13 @@ func (server *Server) ReadNote(c *gin.Context) {
 		Notes: readNotes,
 	}
 
-	jsonData, err := json.MarshalIndent(data, "", "  ")
+	jsonData, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println("Error marshaling JSON:", err)
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, jsonData)
+	c.IndentedJSON(http.StatusOK, string(jsonData))
 
 }
 
